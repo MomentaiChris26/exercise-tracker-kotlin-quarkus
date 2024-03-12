@@ -1,66 +1,71 @@
 -- Create User table
-CREATE TABLE IF NOT EXISTS "User" (
-  UserID   INT PRIMARY KEY,
-  Username VARCHAR(255),
-    Password VARCHAR(255)
+CREATE TABLE clients (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(255),
+    password VARCHAR(255)
     );
 
+-- Set sequence for the client table
+ALTER SEQUENCE client_id_seq START WITH 1 OWNED BY clients.id;
+ALTER SEQUENCE client_id_seq INCREMENT BY 1;
+
 -- Create DayOfWeek table
-CREATE TABLE DayOfWeek
+CREATE TABLE day_of_the_week
 (
-    DayID   INT PRIMARY KEY,
-    DayName VARCHAR(255)
+    id   INT PRIMARY KEY,
+    day_name VARCHAR(255)
 );
 
 -- Create Exercise table
-CREATE TABLE Exercise
+CREATE TABLE exercise
 (
-    ExerciseID   INT PRIMARY KEY,
-    ExerciseName VARCHAR(255),
-    Description  TEXT,
-    MuscleGroup VARCHAR(255)
+    id   INT PRIMARY KEY,
+    name VARCHAR(255),
+    description  TEXT,
+    muscle_group VARCHAR(255)
 );
 
 -- Create UserExerciseTemplate table
-CREATE TABLE UserExerciseTemplate
+CREATE TABLE user_exercise_template
 (
-    TemplateID INT PRIMARY KEY,
-    UserID     INT,
-    DayID      INT,
-    FOREIGN KEY (UserID) REFERENCES "User" (UserID),
-    FOREIGN KEY (DayID) REFERENCES DayOfWeek (DayID)
+    id INT PRIMARY KEY,
+    user_id     INT,
+    day_id      INT,
+    FOREIGN KEY (user_id) REFERENCES clients (id),
+    FOREIGN KEY (day_id) REFERENCES day_of_the_week (id)
 );
 
 -- Create UserExercise table
-CREATE TABLE UserExercise
+CREATE TABLE user_exercise
 (
-    UserExerciseID INT PRIMARY KEY,
-    TemplateID     INT,
-    ExerciseID     INT,
-    Reps           INT,
-    FOREIGN KEY (TemplateID) REFERENCES UserExerciseTemplate (TemplateID),
-    FOREIGN KEY (ExerciseID) REFERENCES Exercise (ExerciseID)
+    id INT PRIMARY KEY,
+    template_id     INT,
+    exercise_id     INT,
+    reps           INT,
+    FOREIGN KEY (template_id) REFERENCES user_exercise_template (id),
+    FOREIGN KEY (exercise_id) REFERENCES exercise (id)
 );
 
 -- Create UserExerciseWeight table
-CREATE TABLE UserExerciseWeight
+CREATE TABLE user_exercise_weight
 (
-    WeightID       INT PRIMARY KEY,
-    UserExerciseID INT,
-    WeekNumber     INT,
-    WeightUsed     DECIMAL(10, 2),
-    FOREIGN KEY (UserExerciseID) REFERENCES UserExercise (UserExerciseID)
+    id INT PRIMARY KEY,
+    user_exercise_id INT,
+    week_number     INT,
+    weight_used     DECIMAL(10, 2),
+    FOREIGN KEY (user_exercise_id) REFERENCES user_exercise (id)
 );
 
 
+
 -- Insert dummy data into User table
-INSERT INTO "User" (UserID, Username,password)
-VALUES (1, 'Alice', 'alice01'),
-       (2, 'Bob', 'bob1990'),
-       (3, 'Charlie', 'charlie123');
+INSERT INTO clients (id,username, password)
+VALUES (1,'Alice', 'alice01'),
+       (2,'Bob', 'bob1990'),
+       (3,'Charlie', 'charlie123');
 
 -- Insert dummy data into DayOfWeek table
-INSERT INTO DayOfWeek (DayID, DayName)
+INSERT INTO day_of_the_week (id, day_name)
 VALUES (1, 'Monday'),
        (2, 'Tuesday'),
        (3, 'Wednesday'),
@@ -70,7 +75,7 @@ VALUES (1, 'Monday'),
        (7, 'Sunday');
 
 -- Insert dummy data into Exercise table
-INSERT INTO Exercise (ExerciseID, ExerciseName, Description,MuscleGroup)
+INSERT INTO exercise (id, name, description, muscle_group)
 VALUES (1, 'Push-up', 'Bodyweight exercise targeting chest, shoulders, and triceps.', 'chest'),
        (2, 'Squats', 'Lower body exercise targeting quadriceps, hamstrings, and glutes.', 'glutes'),
        (3, 'Bench Press', 'Strength training exercise for chest, shoulders, and triceps.', 'chest'),
@@ -78,14 +83,14 @@ VALUES (1, 'Push-up', 'Bodyweight exercise targeting chest, shoulders, and trice
         'lower back');
 
 -- Insert dummy data into UserExerciseTemplate table
-INSERT INTO UserExerciseTemplate (TemplateID, UserID, DayID)
+INSERT INTO user_exercise_template (id, user_id, day_id)
 VALUES (1, 1, 1), -- Alice's Monday template
        (2, 1, 3), -- Alice's Wednesday template
        (3, 2, 2);
 -- Bob's Tuesday template
 
 -- Insert dummy data into UserExercise table
-INSERT INTO UserExercise (UserExerciseID, TemplateID, ExerciseID, Reps)
+INSERT INTO user_exercise (id, template_id, exercise_id, reps)
 VALUES (1, 1, 1, 15), -- Alice's Monday: 15 Push-ups
        (2, 1, 2, 12), -- Alice's Monday: 12 Squats
        (3, 2, 3, 10), -- Alice's Wednesday: 10 Bench Press
@@ -93,7 +98,7 @@ VALUES (1, 1, 1, 15), -- Alice's Monday: 15 Push-ups
 -- Bob's Tuesday: 8 Deadlifts
 
 -- Insert dummy data into UserExerciseWeight table
-INSERT INTO UserExerciseWeight (WeightID, UserExerciseID, WeekNumber, WeightUsed)
+INSERT INTO user_exercise_weight (id, user_exercise_id, week_number, weight_used)
 VALUES (1, 1, 1, 0),  -- Alice's Monday Push-ups, Week 1, No weight used
        (2, 1, 2, 0),  -- Alice's Monday Push-ups, Week 2, No weight used
        (3, 2, 1, 20), -- Alice's Monday Squats, Week 1, 20 kg
@@ -102,3 +107,7 @@ VALUES (1, 1, 1, 0),  -- Alice's Monday Push-ups, Week 1, No weight used
        (6, 3, 2, 32), -- Alice's Wednesday Bench Press, Week 2, 32 kg
        (7, 4, 1, 40), -- Bob's Tuesday Deadlifts, Week 1, 40 kg
        (8, 4, 2, 42); -- Bob's Tuesday Deadlifts, Week 2, 42 kg
+
+
+-- Set next value for sequence
+SELECT setval('client_id_seq', (SELECT MAX(id) FROM clients));
